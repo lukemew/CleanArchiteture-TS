@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  # ------------------------------------
+  # Serviço da sua API (Node.js)
+  # ------------------------------------
+  api:
+    build: . # Constrói a imagem usando o Dockerfile da pasta atual
+    container_name: clean_intro_api
+    ports:
+      - "8000:8000" # Mapeia a porta 8000 do container para a porta 8000 da sua máquina
+    volumes:
+      # Mapeia seu código local para dentro do container
+      # Assim, o 'tsx watch' reinicia o servidor quando você salva um arquivo
+      - .:/usr/src/app
+      # Volume anônimo para node_modules (evita que o mapeamento acima sobrescreva)
+      - /usr/src/app/node_modules
+    command: npm run dev # Comando para rodar a aplicação
+    environment:
+      # Essas variáveis SOBRESCREVEM o .env e são usadas pela sua app
+      - NODE_ENV=development
+      - PORT=8000
+      - DB_HOST=db # <--- A MÁGICA: 'db' é o nome do serviço do banco abaixo
+      - DB_PORT=5432
+      - DB_NAME=clean_intro_api
+      - DB_USER=docker
+      - DB_PASS=docker
+    depends_on:
+      - db # Diz para a 'api' esperar o serviço 'db' estar pronto
+
+  # ------------------------------------
+  # Serviço do Banco de Dados (PostgreSQL)
+  # ------------------------------------
+  db:
+    image: postgres:15-alpine # Imagem oficial do Postgres
+    container_name: postgres_db_clean
+    ports:
+      - "5432:5432" # Mapeia a porta do Postgres para sua máquina (para o Iridium!)
+    environment:
+      # Essas variáveis criam o banco e o usuário na primeira inicialização
+      - POSTGRES_DB=clean_intro_api # <--- Ele cria o banco automaticamente!
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+    volumes:
+      # Volume nomeado para salvar os dados do banco (para não perder tudo)
+      - pgdata:/var/lib/postgresql/data
+
+# Volume nomeado usado pelo serviço 'db'
+volumes:
+  pgdata:

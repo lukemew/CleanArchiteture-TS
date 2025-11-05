@@ -1,0 +1,15 @@
+### Vars
+@url = http://localhost:8000
+
+### Index
+GET {{url}}
+
+### Create User
+POST {{url}}/users
+Content-Type:application/json
+
+{
+    "name": "Jaquin",
+    "email": "jaquin@email.com",
+    "password": "jaja1234"
+}
