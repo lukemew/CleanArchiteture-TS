@@ -11,25 +11,18 @@ export class TypeOrmUserRepository implements IUserRepository {
   constructor() {
     this.ormRepository = AppDataSource.getRepository(UserModel);
   }
-
-  // Implementação do 'save'
   async save(user: User): Promise<void> {
-    // Converte a entidade de domínio para o modelo do banco
     const userModel = UserMapper.toPersistence(user);
-    // Salva no banco
     await this.ormRepository.save(userModel);
   }
 
-  // Implementação do 'find'
   async find(email: string): Promise<User | null> {
-    // Busca no banco
     const userModel = await this.ormRepository.findOneBy({ email });
 
     if (!userModel) {
       return null;
     }
 
-    // Converte o modelo do banco para a entidade de domínio
     return UserMapper.toDomain(userModel);
   }
 }

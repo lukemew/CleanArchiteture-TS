@@ -1,5 +1,4 @@
-import { hash } from "bcrypt";
-
+import bcrypt from "bcrypt";
 export class Password {
   private _value: string;
 
@@ -11,18 +10,20 @@ export class Password {
     return this._value;
   }
 
+  public async compare(plainText: string): Promise<boolean> {
+    return bcrypt.compare(plainText, this._value);
+  }
+
   public static async createAndHash(value: string): Promise<Password> {
     if (value.length < 8) {
       throw new Error("Password must be at least 8 characters long.");
     }
 
-    const hashedPassword = await hash(value, 10);
+    const hashedPassword = await bcrypt.hash(value, 10);
     return new Password(hashedPassword);
   }
 
-  // Método para reconstituir uma senha (do banco de dados)
   public static reconstitute(hashedValue: string): Password {
-    // Apenas "envelopa" o valor, sem validar ou fazer hash
     return new Password(hashedValue);
   }
 }

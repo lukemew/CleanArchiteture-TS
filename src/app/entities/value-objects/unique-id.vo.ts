@@ -18,13 +18,11 @@ export class UniqueId {
     let id: string;
 
     if (value) {
-      // Se um valor foi passado, valide-o
       if (!uuidRegex.test(value)) {
         throw new Error("Invalid ID format. Must be a UUID.");
       }
       id = value;
     } else {
-      // Se nenhum valor foi passado, gere um novo
       id = randomUUID();
     }
 

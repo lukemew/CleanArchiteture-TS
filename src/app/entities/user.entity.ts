@@ -1,6 +1,8 @@
+import { email } from "zod";
 import { Email } from "./value-objects/email.vo.js";
 import { Password } from "./value-objects/password.vo.js";
 import { UniqueId } from "./value-objects/unique-id.vo.js";
+import { error } from "console";
 
 export interface UserProps {
   name: string;
@@ -30,15 +32,19 @@ export class User {
   }
 
   public static async create(
-    props: { name: string; email: string; password: string },
+    props: {
+      name: string;
+      email: string;
+      password: string;
+    },
     id?: string
-  ): Promise<User> {
+  ) {
     const idVO = UniqueId.create(id);
     const emailVO = Email.create(props.email);
     const passwordVO = await Password.createAndHash(props.password);
 
     if (props.name.length < 3) {
-      throw new Error("Name is too short");
+      throw new Error("Name must be at least 3 characters long");
     }
 
     const userProps: UserProps = {
@@ -52,12 +58,37 @@ export class User {
 
   public static reconstitute(
     props: UserProps,
-    id: UniqueId, // <- Alterado
+    id: UniqueId,
     created_at: Date,
     updated_at: Date,
     deleted_at?: Date | null
   ): User {
     return new User(props, id, created_at, updated_at, deleted_at);
+  }
+
+  public update(props: { name: string; email: string }): void {
+    if (props.name.length < 3) {
+      throw new Error("Name is too short");
+    }
+
+    this.props.name = props.name;
+    this.props.email = Email.create(props.email);
+    this._updated_at = new Date();
+  }
+
+  public delete(): void {
+    if (this._deleted_at) {
+      return;
+    }
+    this._deleted_at = new Date();
+  }
+
+  public restore(): void {
+    if (!this._deleted_at) {
+      return;
+    }
+    this._deleted_at = null;
+    this._updated_at = new Date();
   }
 
   public get id(): string {
